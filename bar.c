@@ -79,6 +79,31 @@ static uint32_t fgc, bgc, ugc;
 static uint32_t dfgc, dbgc;
 static area_stack_t astack;
 
+void update_gc (void);
+void fill_rect (xcb_drawable_t, xcb_gcontext_t, int, int, int, int);
+int draw_char (monitor_t *, font_t *, int, int, uint16_t);
+uint32_t parse_color (const char *, char **, const uint32_t);
+void set_attribute (const char, const char);
+area_t * area_get (xcb_window_t, const int);
+void area_shift (xcb_window_t, const int, int);
+bool area_add (char *, const char *, char **, monitor_t *, const int, const int);
+void parse (char *);
+font_t * font_load (const char *);
+void set_ewmh_atoms (void);
+monitor_t * monitor_new (int, int, int, int);
+void monitor_add (monitor_t *);
+int rect_sort_cb (const void *, const void *);
+void monitor_create_chain (xcb_rectangle_t *, const int);
+void get_randr_monitors (void);
+void get_xinerama_monitors (void);
+xcb_visualid_t get_visual (void);
+void xconn (void);
+void init (void);
+void cleanup (void);
+void sighandle (int signal);
+bool parse_geometry_string (char *, int *);
+void parse_font_list (char *);
+
 void update_gc (void) {
     xcb_change_gc(c, gc[GC_DRAW], XCB_GC_BACKGROUND | XCB_GC_FOREGROUND, (const uint32_t []){ fgc, bgc });
     xcb_change_gc(c, gc[GC_CLEAR], XCB_GC_FOREGROUND, (const uint32_t []){ bgc });

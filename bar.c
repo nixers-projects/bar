@@ -373,8 +373,8 @@ void parse (char *text) {
 
             pos_x += w;
             area_shift(cur_mon->window, align, w);
-        }
-    }
+        } /* if else */
+    } /* for */
 }
 
 font_t * font_load (const char *str) {

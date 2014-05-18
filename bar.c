@@ -12,8 +12,6 @@
 #include <xcb/xinerama.h>
 #include <xcb/randr.h>
 
-// Here be dragons
-
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define indexof(c,s) (strchr((s),(c))-(s))
@@ -81,23 +79,17 @@ static uint32_t fgc, bgc, ugc;
 static uint32_t dfgc, dbgc;
 static area_stack_t astack;
 
-void
-update_gc (void)
-{
+void update_gc (void) {
     xcb_change_gc(c, gc[GC_DRAW], XCB_GC_BACKGROUND | XCB_GC_FOREGROUND, (const uint32_t []){ fgc, bgc });
     xcb_change_gc(c, gc[GC_CLEAR], XCB_GC_FOREGROUND, (const uint32_t []){ bgc });
     xcb_change_gc(c, gc[GC_ATTR], XCB_GC_FOREGROUND, (const uint32_t []){ ugc });
 }
 
-void
-fill_rect (xcb_drawable_t d, xcb_gcontext_t gc, int x, int y, int width, int height)
-{
+void fill_rect (xcb_drawable_t d, xcb_gcontext_t gc, int x, int y, int width, int height) {
     xcb_poly_fill_rectangle(c, d, gc, 1, (const xcb_rectangle_t []){ { x, y, width, height } });
 }
 
-int
-draw_char (monitor_t *mon, font_t *cur_font, int x, int align, uint16_t ch)
-{
+int draw_char (monitor_t *mon, font_t *cur_font, int x, int align, uint16_t ch) {
     /* In the unlikely case that the font doesn't have the glyph wanted just do nothing */
     if (ch < cur_font->char_min || ch > cur_font->char_max)
         return 0;
@@ -135,9 +127,7 @@ draw_char (monitor_t *mon, font_t *cur_font, int x, int align, uint16_t ch)
     return ch_width;
 }
 
-uint32_t
-parse_color (const char *str, char **end, const uint32_t def)
-{
+uint32_t parse_color (const char *str, char **end, const uint32_t def) {
     xcb_alloc_named_color_reply_t *nc_reply;
     int str_len;
     uint32_t ret;
@@ -181,9 +171,7 @@ parse_color (const char *str, char **end, const uint32_t def)
 }
 
 
-void
-set_attribute (const char modifier, const char attribute)
-{
+void set_attribute (const char modifier, const char attribute) {
     int pos = indexof(attribute, "ou");
 
     if (pos < 0) {
@@ -199,18 +187,14 @@ set_attribute (const char modifier, const char attribute)
 }
 
 
-area_t *
-area_get (xcb_window_t win, const int x)
-{
+area_t * area_get (xcb_window_t win, const int x) {
     for (int i = 0; i < astack.pos; i++)
         if (astack.slot[i].window == win && x > astack.slot[i].begin && x < astack.slot[i].end)
             return &astack.slot[i];
     return NULL;
 }
 
-void
-area_shift (xcb_window_t win, const int align, int delta)
-{
+void area_shift (xcb_window_t win, const int align, int delta) {
     if (align == ALIGN_L)
         return;
     if (align == ALIGN_C)
@@ -224,9 +208,7 @@ area_shift (xcb_window_t win, const int align, int delta)
     }
 }
 
-bool
-area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x, const int align)
-{
+bool area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x, const int align) {
     char *p = str;
     area_t *a = &astack.slot[astack.pos];
 
@@ -286,9 +268,7 @@ area_add (char *str, const char *optend, char **end, monitor_t *mon, const int x
     return true;
 }
 
-void
-parse (char *text)
-{
+void parse (char *text) {
     font_t *cur_font;
     monitor_t *cur_mon;
     int pos_x;
@@ -348,8 +328,8 @@ parse (char *text)
                               { cur_mon = montail ? montail : monhead; }
                               else if (isdigit(*p))
                               { cur_mon = monhead;
-                                for (int i = 0; i != *p-'0' && cur_mon->next; i++)
-                                    cur_mon = cur_mon->next;
+                                  for (int i = 0; i != *p-'0' && cur_mon->next; i++)
+                                      cur_mon = cur_mon->next;
                               }
                               else
                               { p++; continue; }
@@ -359,13 +339,13 @@ parse (char *text)
                               fill_rect(cur_mon->pixmap, gc[GC_CLEAR], 0, 0, cur_mon->width, bh);
                               break;
 
-                    /* In case of error keep parsing after the closing } */
+                              /* In case of error keep parsing after the closing } */
                     default:
-                        p = end;
+                              p = end;
                 }
             }
-            /* Eat the trailing } */
-            p++;
+           /* Eat the trailing } */
+           p++;
         } else { /* utf-8 -> ucs-2 */
             uint8_t *utf = (uint8_t *)p;
             uint16_t ucs;
@@ -373,16 +353,13 @@ parse (char *text)
             if (utf[0] < 0x80) {
                 ucs = utf[0];
                 p  += 1;
-            }
-            else if ((utf[0] & 0xe0) == 0xc0) {
+            } else if ((utf[0] & 0xe0) == 0xc0) {
                 ucs = (utf[0] & 0x1f) << 6 | (utf[1] & 0x3f);
                 p += 2;
-            }
-            else if ((utf[0] & 0xf0) == 0xe0) {
+            } else if ((utf[0] & 0xf0) == 0xe0) {
                 ucs = (utf[0] & 0xf) << 12 | (utf[1] & 0x3f) << 6 | (utf[2] & 0x3f);
                 p += 3;
-            }
-            else { /* Handle ascii > 0x80 */
+            } else { /* Handle ascii > 0x80 */
                 ucs = utf[0];
                 p += 1;
             }
@@ -400,9 +377,7 @@ parse (char *text)
     }
 }
 
-font_t *
-font_load (const char *str)
-{
+font_t * font_load (const char *str) {
     xcb_query_font_cookie_t queryreq;
     xcb_query_font_reply_t *font_info;
     xcb_void_cookie_t cookie;
@@ -445,9 +420,7 @@ enum {
     NET_WM_STATE_ABOVE,
 };
 
-void
-set_ewmh_atoms (void)
-{
+void set_ewmh_atoms (void) {
     const char *atom_names[] = {
         "_NET_WM_WINDOW_TYPE",
         "_NET_WM_WINDOW_TYPE_DOCK",
@@ -490,17 +463,20 @@ set_ewmh_atoms (void)
             strut[11] = mon->x + mon->width;
         }
 
-        xcb_change_property(c, XCB_PROP_MODE_REPLACE, mon->window, atom_list[NET_WM_WINDOW_TYPE], XCB_ATOM_ATOM, 32, 1, &atom_list[NET_WM_WINDOW_TYPE_DOCK]);
-        xcb_change_property(c, XCB_PROP_MODE_APPEND,  mon->window, atom_list[NET_WM_STATE], XCB_ATOM_ATOM, 32, 2, &atom_list[NET_WM_STATE_STICKY]);
-        xcb_change_property(c, XCB_PROP_MODE_REPLACE, mon->window, atom_list[NET_WM_DESKTOP], XCB_ATOM_CARDINAL, 32, 1, (const uint32_t []){ -1 } );
-        xcb_change_property(c, XCB_PROP_MODE_REPLACE, mon->window, atom_list[NET_WM_STRUT_PARTIAL], XCB_ATOM_CARDINAL, 32, 12, strut);
-        xcb_change_property(c, XCB_PROP_MODE_REPLACE, mon->window, atom_list[NET_WM_STRUT], XCB_ATOM_CARDINAL, 32, 4, strut);
+        xcb_change_property(c, XCB_PROP_MODE_REPLACE, 
+                mon->window, atom_list[NET_WM_WINDOW_TYPE], XCB_ATOM_ATOM, 32, 1, &atom_list[NET_WM_WINDOW_TYPE_DOCK]);
+        xcb_change_property(c, XCB_PROP_MODE_APPEND,  
+                mon->window, atom_list[NET_WM_STATE], XCB_ATOM_ATOM, 32, 2, &atom_list[NET_WM_STATE_STICKY]);
+        xcb_change_property(c, XCB_PROP_MODE_REPLACE, 
+                mon->window, atom_list[NET_WM_DESKTOP], XCB_ATOM_CARDINAL, 32, 1, (const uint32_t []){ -1 } );
+        xcb_change_property(c, XCB_PROP_MODE_REPLACE, 
+                mon->window, atom_list[NET_WM_STRUT_PARTIAL], XCB_ATOM_CARDINAL, 32, 12, strut);
+        xcb_change_property(c, XCB_PROP_MODE_REPLACE, 
+                mon->window, atom_list[NET_WM_STRUT], XCB_ATOM_CARDINAL, 32, 4, strut);
     }
 }
 
-monitor_t *
-monitor_new (int x, int y, int width, int height)
-{
+monitor_t * monitor_new (int x, int y, int width, int height) {
     monitor_t *ret;
 
     ret = calloc(1, sizeof(monitor_t));
@@ -529,9 +505,7 @@ monitor_new (int x, int y, int width, int height)
     return ret;
 }
 
-void
-monitor_add (monitor_t *mon)
-{
+void monitor_add (monitor_t *mon) {
     if (!monhead) {
         monhead = mon;
     } else if (!montail) {
@@ -545,9 +519,7 @@ monitor_add (monitor_t *mon)
     }
 }
 
-int
-rect_sort_cb (const void *p1, const void *p2)
-{
+int rect_sort_cb (const void *p1, const void *p2) {
     const xcb_rectangle_t *r1 = (xcb_rectangle_t *)p1;
     const xcb_rectangle_t *r2 = (xcb_rectangle_t *)p2;
 
@@ -559,9 +531,7 @@ rect_sort_cb (const void *p1, const void *p2)
     return 0;
 }
 
-void
-monitor_create_chain (xcb_rectangle_t *rects, const int num)
-{
+void monitor_create_chain (xcb_rectangle_t *rects, const int num) {
     int width = bw;
     int left = bx;
 
@@ -593,9 +563,7 @@ monitor_create_chain (xcb_rectangle_t *rects, const int num)
     }
 }
 
-void
-get_randr_monitors (void)
-{
+void get_randr_monitors (void) {
     xcb_randr_get_screen_resources_current_reply_t *rres_reply;
     xcb_randr_output_t *outputs;
     int num, valid = 0;
@@ -666,7 +634,7 @@ get_randr_monitors (void)
 
             if (i != j && rects[j].width) {
                 if (rects[j].x >= rects[i].x && rects[j].x + rects[j].width <= rects[i].x + rects[i].width &&
-                    rects[j].y >= rects[i].y && rects[j].y + rects[j].height <= rects[i].y + rects[i].height) {
+                        rects[j].y >= rects[i].y && rects[j].y + rects[j].height <= rects[i].y + rects[i].height) {
                     rects[j].width = 0;
                     valid--;
                 }
@@ -682,9 +650,7 @@ get_randr_monitors (void)
     monitor_create_chain(rects, num);
 }
 
-void
-get_xinerama_monitors (void)
-{
+void get_xinerama_monitors (void) {
     xcb_xinerama_query_screens_reply_t *xqs_reply;
     xcb_xinerama_screen_info_iterator_t iter;
     int screens;
@@ -711,9 +677,7 @@ get_xinerama_monitors (void)
     monitor_create_chain(rects, screens);
 }
 
-xcb_visualid_t
-get_visual (void)
-{
+xcb_visualid_t get_visual (void) {
     xcb_depth_iterator_t iter;
 
     iter = xcb_screen_allowed_depths_iterator(scr);
@@ -732,9 +696,7 @@ get_visual (void)
     return scr->root_visual;
 }
 
-void
-xconn (void)
-{
+void xconn (void) {
     /* Connect to X */
     c = xcb_connect (NULL, NULL);
     if (xcb_connection_has_error(c)) {
@@ -752,9 +714,7 @@ xconn (void)
     xcb_create_colormap(c, XCB_COLORMAP_ALLOC_NONE, colormap, scr->root, visual);
 }
 
-void
-init (void)
-{
+void init (void) {
     /* If I fits I sits */
     if (bw < 0)
         bw = scr->width_in_pixels - bx;
@@ -830,9 +790,7 @@ init (void)
     xcb_flush(c);
 }
 
-void
-cleanup (void)
-{
+void cleanup (void) {
     if (main_font) {
         xcb_close_font(c, main_font->ptr);
         free(main_font);
@@ -863,17 +821,13 @@ cleanup (void)
         xcb_disconnect(c);
 }
 
-void
-sighandle (int signal)
-{
+void sighandle (int signal) {
     if (signal == SIGINT || signal == SIGTERM)
         exit(EXIT_SUCCESS);
 }
 
 /* Parse an X-styled geometry string, we don't support signed offsets tho. */
-bool
-parse_geometry_string (char *str, int *tmp)
-{
+bool parse_geometry_string (char *str, int *tmp) {
     char *p = str;
     int i = 0, j;
 
@@ -921,9 +875,7 @@ parse_geometry_string (char *str, int *tmp)
     return true;
 }
 
-void
-parse_font_list (char *str)
-{
+void parse_font_list (char *str) {
     char *tok;
 
     if (!str)
@@ -939,9 +891,7 @@ parse_font_list (char *str)
     return;
 }
 
-int
-main (int argc, char **argv)
-{
+int main (int argc, char **argv) {
     struct pollfd pollin[2] = {
         { .fd = STDIN_FILENO, .events = POLLIN },
         { .fd = -1          , .events = POLLIN },

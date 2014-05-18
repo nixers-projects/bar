@@ -1,7 +1,7 @@
 CC     = clang
 PREFIX = /usr/pkg
 BINDIR = ${PREFIX}/bin
-CFLAGS = -std=c99 -Os -I${PREFIX}/include
+CFLAGS = -g -std=c99 -Os -I${PREFIX}/include -Wall
 LDFLAGS = -L${PREFIX}/lib -lxcb -lxcb-xinerama -lxcb-randr
 
 EXEC = bar

@@ -12,6 +12,8 @@
 #include <xcb/xinerama.h>
 #include <xcb/randr.h>
 
+#include "config.h"
+
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define indexof(c,s) (strchr((s),(c))-(s))
@@ -901,17 +903,10 @@ bool parse_geometry_string (char *str, int *tmp) {
 }
 
 void parse_font_list (char *str) {
-    char *tok;
-
     if (!str)
         return;
 
-    tok = strtok(str, ",");
-    if (tok)
-        mfont = tok;
-    tok = strtok(NULL, ",");
-    if (tok)
-        afont = tok;
+    mfont = str;
 
     return;
 }
@@ -926,53 +921,43 @@ int main (int argc, char **argv) {
     xcb_button_press_event_t *press_ev;
     char input[2048] = {0, };
     bool permanent = false;
-    int geom_v[4] = { -1, -1, 0, 0 };
+    /* bar fonts */
+    parse_font_list(BAR_FONT);
 
+    /* bar underline height */
+    bu = BAR_UNDERLINE_HEIGHT;
+
+    /* bar foreground and background */
+    bgc = COLOR0;
+    fgc = COLOR1;
+    ugc = COLOR2;
+
+    /* geometry values */
+    bw = BAR_GEOM_WIDTH;
+    bh = BAR_GEOM_HEIGHT;
+    bx = BAR_OFFSET_X;
+    by = BAR_OFFSET_Y;
+    topbar = BAR_BOTTOM;
     /* Install the parachute! */
     atexit(cleanup);
     signal(SIGINT, sighandle);
     signal(SIGTERM, sighandle);
-
     /* Connect to the Xserver and initialize scr */
     xconn();
 
-    /* B/W combo */
-    dbgc = bgc = parse_color("black", NULL, scr->black_pixel);
-    dfgc = fgc = parse_color("white", NULL, scr->white_pixel);
-
-    ugc = fgc;
-
     char ch;
-    while ((ch = getopt(argc, argv, "hg:bdf:a:pu:B:F:")) != -1) {
+    while ((ch = getopt(argc, argv, "h:bdf:a:pu:B:F:")) != -1) {
         switch (ch) {
             case 'h':
-                printf ("usage: %s [-h | -g | -b | -d | -f | -a | -p | -u | -B | -F]\n"
+                printf ("usage: %s [-h | -d | -p ]\n"
                         "\t-h Show this help\n"
-                        "\t-g Set the bar geometry {width}x{height}+{xoffset}+{yoffset}\n"
-                        "\t-b Put bar at the bottom of the screen\n"
                         "\t-d Force docking (use this if your WM isn't EWMH compliant)\n"
-                        "\t-f Bar font list, comma separated\n"
-                        "\t-p Don't close after the data ends\n"
-                        "\t-u Set the underline/overline height in pixels\n"
-                        "\t-B Set background color in #AARRGGBB\n"
-                        "\t-F Set foreground color in #AARRGGBB\n", argv[0]);
+                        "\t-p Don't close after the data ends\n", argv[0]);
                 exit (EXIT_SUCCESS);
-            case 'g': (void)parse_geometry_string(optarg, geom_v); break;
             case 'p': permanent = true; break;
-            case 'b': topbar = false; break;
             case 'd': dock = true; break;
-            case 'f': parse_font_list(optarg); break;
-            case 'u': bu = strtoul(optarg, NULL, 10); break;
-            case 'B': dbgc = bgc = parse_color(optarg, NULL, scr->black_pixel); break;
-            case 'F': dfgc = fgc = parse_color(optarg, NULL, scr->white_pixel); break;
         }
     }
-
-    /* Copy the geometry values in place */
-    bw = geom_v[0];
-    bh = geom_v[1];
-    bx = geom_v[2];
-    by = geom_v[3];
 
     /* Check the geometry */
     if (bx + bw > scr->width_in_pixels || by + bh > scr->height_in_pixels) {
@@ -1025,9 +1010,8 @@ int main (int argc, char **argv) {
         }
 
         if (redraw) { /* Copy our temporary pixmap onto the window */
-            for (monitor_t *mon = monhead; mon; mon = mon->next) {
+            for (monitor_t *mon = monhead; mon; mon = mon->next)
                 xcb_copy_area(c, mon->pixmap, mon->window, gc[GC_DRAW], 0, 0, 0, 0, mon->width, bh);
-            }
         }
 
         xcb_flush(c);

@@ -1,15 +1,14 @@
-CC	?= clang
-CFLAGS = -std=c99 -Os -I/usr/pkg/include
-LDFLAGS = -L/usr/pkg/lib -lxcb -lxcb-xinerama -lxcb-randr
-CFDEBUG = -g3 -pedantic -Wall -Wunused-parameter -Wlong-long\
+CC     = clang
+PREFIX = /usr/pkg
+BINDIR = ${PREFIX}/bin
+CFLAGS = -std=c99 -Os -I${PREFIX}/include
+LDFLAGS = -L${PREFIX}/lib -lxcb -lxcb-xinerama -lxcb-randr
+CFDEBUG = -pedantic -Wall -Wunused-parameter -Wlong-long\
 		  -Wsign-conversion -Wconversion -Wimplicit-function-declaration
 
 EXEC = bar
 SRCS = bar.c
 OBJS = ${SRCS:.c=.o}
-
-PREFIX?=/usr
-BINDIR=${PREFIX}/bin
 
 all: ${EXEC}
 
@@ -27,8 +26,8 @@ clean:
 	rm -f ./${EXEC}
 
 install: bar 
-	install -D -m 755 bar ${DESTDIR}${BINDIR}/bar
-	#install -D -m 644 bar.1 ${DESTDIR}${PREFIX}/share/man/man1/bar.1
+	install -m 755 bar ${DESTDIR}${BINDIR}/bar
+	#install -m 644 bar.1 ${DESTDIR}${PREFIX}/share/man/man1/bar.1
 
 uninstall:
 	rm -f ${DESTDIR}${BINDIR}/bar

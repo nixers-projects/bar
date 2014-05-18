@@ -1,10 +1,8 @@
 CC     = clang
 PREFIX = /usr/pkg
 BINDIR = ${PREFIX}/bin
-CFLAGS = -std=c99 -Os -I${PREFIX}/include
+CFLAGS = -std=c99 -Weverything -Os -I${PREFIX}/include
 LDFLAGS = -L${PREFIX}/lib -lxcb -lxcb-xinerama -lxcb-randr
-CFDEBUG = -pedantic -Wall -Wunused-parameter -Wlong-long\
-		  -Wsign-conversion -Wconversion -Wimplicit-function-declaration
 
 EXEC = bar
 SRCS = bar.c

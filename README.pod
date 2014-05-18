@@ -1,6 +1,6 @@
 =head1 NAME
 
-bar - bar ain't recursive
+bbar - better bar
 
 =head1 SYNOPSIS
 

@@ -157,11 +157,10 @@ int draw_char (monitor_t *mon, font_t *cur_font, int x, int align, uint16_t ch) 
 }
 
 uint32_t parse_color (const char * hex) {
-    char strgroups[7]    = {hex[1], hex[2], hex[3], hex[4], hex[5], hex[6], '\0'};
-    uint32_t rgb48 = strtol(strgroups, NULL, 16);
+    char strgroups[7] = {hex[1], hex[2], hex[3], hex[4], hex[5], hex[6], '\0'};
+    uint32_t rgb48 = strtoul(strgroups, NULL, 16);
     return rgb48 | 0xff000000;
 }
-
 
 void set_attribute (const char modifier, const char attribute) {
     int pos = indexof(attribute, "ou");
@@ -886,16 +885,17 @@ int main (int argc, char **argv) {
     xcb_button_press_event_t *press_ev;
     char input[2048] = {0, };
     bool permanent = false;
+    
     /* bar fonts */
     parse_font_list(BAR_FONT);
 
-    /* bar underline height */
+    /* bar underline height and color*/
     bu = BAR_UNDERLINE_HEIGHT;
+    ugc = parse_color(palette[2]);
 
     /* bar foreground and background */
     bgc = parse_color(palette[0]);
     fgc = parse_color(palette[1]);
-    ugc = parse_color(palette[2]);
 
     /* geometry values */
     bw = BAR_GEOM_WIDTH;
@@ -903,10 +903,12 @@ int main (int argc, char **argv) {
     bx = BAR_OFFSET_X;
     by = BAR_OFFSET_Y;
     topbar = BAR_BOTTOM;
+
     /* Install the parachute! */
     atexit(cleanup);
     signal(SIGINT, sighandle);
     signal(SIGTERM, sighandle);
+
     /* Connect to the Xserver and initialize scr */
     xconn();
 

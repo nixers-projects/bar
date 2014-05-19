@@ -12,13 +12,13 @@
 /* The font used for the bar */
 #define BAR_FONT       "-*-terminus-medium-r-normal-*-12-*-*-*-c-*-*-1"
 /* Color palette */
-#define COLOR0  0x1A1A1A /* background */
-#define COLOR1  0xA9A9A9 /* foreground */
-#define COLOR2  0x303030
-#define COLOR3  0xF92672
-#define COLOR4  0xA6E22E
-#define COLOR5  0xFD971F
-#define COLOR6  0x66D9EF
-#define COLOR7  0x9E6FFE
-#define COLOR8  0xAF875F
-#define COLOR9  0xCCCCC6
+#define COLOR0  "#1A1A1A" /* background */
+#define COLOR1  "#A9A9A9" /* foreground */
+#define COLOR2  "#303030"
+#define COLOR3  "#F92672"
+#define COLOR4  "#A6E22E"
+#define COLOR5  "#FD971F"
+#define COLOR6  "#66D9EF"
+#define COLOR7  "#9E6FFE"
+#define COLOR8  "#AF875F"
+#define COLOR9  "#CCCCC6"

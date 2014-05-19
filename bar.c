@@ -78,13 +78,15 @@ static int bw = -1, bh = -1, bx = 0, by = 0;
 static int bu = 1; /* Underline height */
 static char *mfont, *afont;
 static uint32_t fgc, bgc, ugc;
-static uint32_t dfgc, dbgc;
 static area_stack_t astack;
+static const char * palette[10] = {
+    COLOR0,COLOR1,COLOR2,COLOR3,COLOR4,COLOR5,COLOR6,COLOR7,COLOR8,COLOR9
+};
 
 void update_gc (void);
 void fill_rect (xcb_drawable_t, xcb_gcontext_t, int, int, int, int);
 int draw_char (monitor_t *, font_t *, int, int, uint16_t);
-uint32_t parse_color (const char *, char **, const uint32_t);
+uint32_t parse_color (const char *);
 void set_attribute (const char, const char);
 area_t * area_get (xcb_window_t, const int);
 void area_shift (xcb_window_t, const int, int);
@@ -154,47 +156,10 @@ int draw_char (monitor_t *mon, font_t *cur_font, int x, int align, uint16_t ch) 
     return ch_width;
 }
 
-uint32_t parse_color (const char *str, char **end, const uint32_t def) {
-    xcb_alloc_named_color_reply_t *nc_reply;
-    int str_len;
-    uint32_t ret;
-
-    if (!str)
-        return def;
-
-    /* Reset */
-    if (str[0] == '-') {
-        if (end)
-            *end = (char *)str + 1;
-        return def;
-    }
-
-    /* Hex representation */
-    if (str[0] == '#') {
-        errno = 0;
-        uint32_t tmp = strtoul(str + 1, end, 16);
-        /* Some error checking it's good */
-        if (errno)
-            return def;
-        return tmp;
-    }
-
-    /* Actual color name, resolve it */
-    str_len = 0;
-    while (isalpha(str[str_len]))
-        str_len++;
-
-    nc_reply = xcb_alloc_named_color_reply(c, xcb_alloc_named_color(c, colormap, str_len, str), NULL);
-
-    if (!nc_reply)
-        fprintf(stderr, "Could not alloc color \"%.*s\"\n", str_len, str);
-    ret = (nc_reply) ? nc_reply->pixel : def;
-    free(nc_reply);
-
-    if (end)
-        *end = (char *)str + str_len;
-
-    return ret;
+uint32_t parse_color (const char * hex) {
+    char strgroups[7]    = {hex[1], hex[2], hex[3], hex[4], hex[5], hex[6], '\0'};
+    uint32_t rgb48 = strtol(strgroups, NULL, 16);
+    return rgb48 | 0xff000000;
 }
 
 
@@ -340,9 +305,9 @@ void parse (char *text) {
                               area_add(p, end, &p, cur_mon, pos_x, align);
                               break;
 
-                    case 'B': bgc = parse_color(p, &p, dbgc); update_gc(); break;
-                    case 'F': fgc = parse_color(p, &p, dfgc); update_gc(); break;
-                    case 'U': ugc = parse_color(p, &p, dbgc); update_gc(); break;
+                    case 'B': bgc = parse_color(palette[atoi(p)]); update_gc(); break;
+                    case 'F': fgc = parse_color(palette[atoi(p)]); update_gc(); break;
+                    case 'U': ugc = parse_color(palette[atoi(p)]); update_gc(); break;
 
                     case 'S':
                               if (*p == '+' && cur_mon->next)
@@ -928,9 +893,9 @@ int main (int argc, char **argv) {
     bu = BAR_UNDERLINE_HEIGHT;
 
     /* bar foreground and background */
-    bgc = COLOR0;
-    fgc = COLOR1;
-    ugc = COLOR2;
+    bgc = parse_color(palette[0]);
+    fgc = parse_color(palette[1]);
+    ugc = parse_color(palette[2]);
 
     /* geometry values */
     bw = BAR_GEOM_WIDTH;

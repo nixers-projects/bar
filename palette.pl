@@ -12,25 +12,16 @@ use warnings;
 
 open (F, "<".$ARGV[0]) || die "Can't open!";
 
-our %vars = ();
-
 while (<F>) {
-    # Don't match comments
-    if ($_ !~ m/^\s*!/) {
-        # It's a define!
-        if ($_ =~ m/^\s*#define\s+(\w+)\s+#([0-9A-Fa-f]{1,6})/) {
-            $vars{"$1"} = hex($2);
+    if ($_ =~ m/^\s*(?:\w+\.|\*)(color|background|foreground)(\d+)?\s*:\s*#([0-9A-Fa-f]*)/) {
+        if    ($1 eq "background") { 
+            printf "#define COLOR0\t\"#$3\"\n"; 
         }
-        elsif ($_ =~ m/^\s*\w*\*(background|foreground|color\d)\s*:\s*([\w\d#]+)/) {
-            my ($name, $value) = (uc $1, $2); 
-            # Check if it's a color
-            if (substr($value, 0, 1) eq '#') {
-                $value = hex(substr($value, 1));
-            } else {
-                $value = $vars{"$value"};
-            }
-            printf "#define $name 0x%06x\n", $value;
+        elsif ($1 eq "foreground") { 
+            printf "#define COLOR1\t\"#$3\"\n" 
+        }
+        elsif ($1 eq "color" && $2 < 8) { 
+            printf "#define COLOR%i\t\"#$3\"\n", $2 + 2;
         }
     }
 }
-

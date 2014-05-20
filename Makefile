@@ -1,5 +1,5 @@
 CC     = clang
-PREFIX = /usr/pkg
+PREFIX = /usr/local
 BINDIR = ${PREFIX}/bin
 CFLAGS = -g -std=c99 -Os -I${PREFIX}/include -Wall
 LDFLAGS = -L${PREFIX}/lib -lxcb -lxcb-xinerama -lxcb-randr

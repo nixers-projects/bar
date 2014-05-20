@@ -3,8 +3,6 @@
 #define BAR_GEOM_WIDTH  1280
 #define BAR_OFFSET_X    0
 #define BAR_OFFSET_Y    0
-/* The height of the bar (in pixels) */
-#define BAR_HEIGHT  18
 /* The thickness of the underline (in pixels) */
 #define BAR_UNDERLINE_HEIGHT 2
 /* Default bar position, overwritten by '-b' switch */
